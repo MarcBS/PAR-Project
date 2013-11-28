@@ -9,8 +9,28 @@ public class State {
 		predList = pl;
 	}
 	
-	public void checkPreconditions(){
-		// TODO
+	/**
+	 * Checks if all the preconditions passed by parameter are accomplished in the
+	 * current state.
+	 * 
+	 * @param pl ArrayList<Predicate> list of preconditions.
+	 * @return boolean saying if the preconditions are accomplished or not for 
+	 * 			the current state.
+	 */
+	public boolean checkPreconditions(ArrayList<Predicate> pl){
+		boolean accomplished = true;
+		int i = 0;
+		while(i < pl.size() && accomplished){ // for each predicate
+			boolean found = false;
+			int j = 0;
+			while(j < predList.size() && !found){
+				found = predList.get(j).equalsPredicate(pl.get(i));
+				j++;
+			}
+			accomplished = found;
+			i++;
+		}
+		return accomplished;
 	}
 	
 	/**

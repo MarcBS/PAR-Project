@@ -18,11 +18,9 @@ import java.util.HashMap;
 public class Main {
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 		try {
 			readInput("input.txt");
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return;
 		}
@@ -36,7 +34,6 @@ public class Main {
 		try {
 			fileReader = new FileReader(new File(filename));
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return;
 		}
@@ -91,5 +88,6 @@ public class Main {
 				}
 			}
 		}
+		br.close();
 	}
 }

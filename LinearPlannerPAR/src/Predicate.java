@@ -64,12 +64,20 @@ public class Predicate {
 	 * 		- The given list is shorter than the current: return -1 on the first position.
 	 * 		- The given list is longee than the current: return -2 on the first position.
 	 * 		- One of the variables is a DefaultVariable: return 2 on the given position.
+	 * 		- Both lists have 0 variables: return 1 on the first position.
 	 * 
 	 * @param vl List of variables to compare.
 	 * @return int[] with 0s or 1s treated as false or true.
 	 */
 	public int[] hasVariables(ArrayList<Variable> vl){
-		int[] ret = new int[vl.size()];
+		
+		int[] ret = new int[Math.max(1, this.varNum)];
+		
+		// If both lists have 0 variables then we return a 1 in the first position
+		if(this.varNum == 0 && vl == null){
+			ret[0] = 1;
+			return ret;
+		}
 		
 		// vl size > varList size
 		if(vl.size() < varList.size()){

@@ -19,7 +19,15 @@ public class Main {
 
 	public static void main(String[] args) {
 		try {
+			
 			readInput("input.txt");
+			
+			// TODO: initialize Locomotive with ops, predicates, iniState, finState
+			
+			// TODO: locomotive.solve() in order to start the algorithm
+			
+			
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 			return;

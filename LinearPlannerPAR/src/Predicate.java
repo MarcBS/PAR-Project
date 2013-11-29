@@ -26,6 +26,54 @@ public class Predicate {
 	}
 	
 	/**
+	 * Checks if it has the variable passed by parameter in its inner list.
+	 * 
+	 * @param v Variable to check if it matches some variable in it.
+	 * @return int position where the variable is stored, or -1 if it is not found.
+	 */
+	public int hasVariable(Variable v){
+		
+		// If this predicate has no variables we can directly return -1.
+		if(varNum == 0){
+			return -1;
+		}
+		
+		boolean found = false;
+		int i = 0;
+		while(i < varList.size() && !found){
+			
+			boolean this_isDef = (varList.get(i) instanceof DefaultVariable);
+			boolean v_isDef = (v instanceof DefaultVariable);
+			
+			// If they belong to the same class and have the same name, then we found it.
+			if((this_isDef == v_isDef) && varList.get(i).isName(v.getName())){
+				found = true;
+			}
+
+			i++;
+		}
+
+		if(found){
+			return i-1;
+		} else {
+			return -1;
+		}
+	}
+	
+	
+	/**
+	 * Replaces the variable in the position "pos" by the variable passed by parameter.
+	 * 
+	 * @param v Variable to introduce.
+	 * @param pos int position in the inner list.
+	 */
+	public void replaceVariable(Variable v, int pos){
+		varList.remove(pos);
+		varList.add(pos, v);
+	}
+	
+	
+	/**
 	 * Checks if the given predicate is the same and has the same variables than the current one.
 	 * 
 	 * @param p Predicate to compare.

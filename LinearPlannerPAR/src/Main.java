@@ -18,32 +18,162 @@ import java.util.HashMap;
 public class Main {
 
 	public static void main(String[] args) {
+		
+		State[] states;
 		try {
 			
-			readInput("input.txt");
-			
-			// TODO: initialize Locomotive with ops, predicates, iniState, finState
-			
-			// TODO: locomotive.solve() in order to start the algorithm
-			
-			
+			states = readInput("input.txt");
 			
 		} catch (IOException e) {
 			e.printStackTrace();
 			return;
 		}
+			
+			// TODO: initialize Locomotive with ops, predicates, iniState, finState
+			
+			// Create predicates
+			Predicate p1 = new Predicate("USED-RAILWAYS", new ArrayList<Variable>(), 1);
+			p1.getVariables().add(new DefaultVariable("n"));
+			
+			Predicate p2 = new Predicate("ON-STATION", new ArrayList<Variable>(), 1);
+			p2.getVariables().add(new DefaultVariable("x"));
+			
+			Predicate p3 = new Predicate("FREE-LOCOMOTIVE", null, 0);
+			
+			Predicate p4 = new Predicate("FREE", new ArrayList<Variable>(), 1);
+			p4.getVariables().add(new DefaultVariable("x"));
+			
+			Predicate p5 = new Predicate("TOWED", new ArrayList<Variable>(), 1);
+			p5.getVariables().add(new DefaultVariable("x"));
+			
+			Predicate p6 = new Predicate("IN-FRONT-OF", new ArrayList<Variable>(), 2);
+			p6.getVariables().add(new DefaultVariable("x"));
+			p6.getVariables().add(new DefaultVariable("y"));
+			
+			Predicate p7 = new Predicate("EMPTY", new ArrayList<Variable>(), 1);
+			p7.getVariables().add(new DefaultVariable("x"));
+			
+			Predicate p8 = new Predicate("LOADED", new ArrayList<Variable>(), 1);
+			p8.getVariables().add(new DefaultVariable("x"));
+			
+			ArrayList<Predicate> lp = new ArrayList<Predicate>();
+			lp.add(p1);
+			lp.add(p2);
+			lp.add(p3);
+			lp.add(p4);
+			lp.add(p5);
+			lp.add(p6);
+			lp.add(p7);
+			lp.add(p8);
+			
+			// Create operators
+			Operator op1 = new Operator(new ArrayList<Predicate>(), 
+										new ArrayList<Predicate>(), 
+										new ArrayList<Predicate>(), 
+										"COUPLE", 
+										new ArrayList<Variable>());
+			op1.getPrecList().add(p1);
+			op1.getPrecList().add(p2);
+			op1.getPrecList().add(p3);
+			op1.getPrecList().add(p4);
+			op1.getDeleteList().add(p2);
+			op1.getDeleteList().add(p3);
+			op1.getDeleteList().add(p1);
+			op1.getAddList().add(p5);
+			op1.getAddList().add(p1);
+			op1.varList.add(new DefaultVariable("x"));
+			
+			Operator op2 = new Operator(new ArrayList<Predicate>(), 
+										new ArrayList<Predicate>(), 
+										new ArrayList<Predicate>(), 
+										"PARK", 
+										new ArrayList<Variable>());
+			op2.getPrecList().add(p5);
+			op2.getPrecList().add(p1);
+			// ALERT! strange precondition n < max-railways
+			op2.getDeleteList().add(p5);
+			op2.getDeleteList().add(p1);
+			op2.getAddList().add(p2);
+			op2.getAddList().add(p1);
+			op2.getAddList().add(p3);
+			op2.varList.add(new DefaultVariable("x"));
+			
+			Operator op3 = new Operator(new ArrayList<Predicate>(), 
+										new ArrayList<Predicate>(), 
+										new ArrayList<Predicate>(), 
+										"DETACH", 
+										new ArrayList<Variable>());
+			op3.getPrecList().add(p6);
+			op3.getPrecList().add(p4);
+			op3.getPrecList().add(p3);
+			op3.getDeleteList().add(p6);
+			op3.getDeleteList().add(p3);
+			op3.getAddList().add(p5);
+			op3.getAddList().add(p4);
+			op3.varList.add(new DefaultVariable("x"));
+			op3.varList.add(new DefaultVariable("y"));
+			
+			Operator op4 = new Operator(new ArrayList<Predicate>(), 
+										new ArrayList<Predicate>(), 
+										new ArrayList<Predicate>(), 
+										"ATTACH", 
+										new ArrayList<Variable>());
+			op4.getPrecList().add(p5);
+			op4.getPrecList().add(p4);
+			op4.getDeleteList().add(p5);
+			op4.getDeleteList().add(p4);
+			op4.getAddList().add(p6);
+			op4.getAddList().add(p3);
+			op4.varList.add(new DefaultVariable("x"));
+			op4.varList.add(new DefaultVariable("y"));
+			
+			Operator op5 = new Operator(new ArrayList<Predicate>(), 
+										new ArrayList<Predicate>(), 
+										new ArrayList<Predicate>(), 
+										"LOAD", 
+										new ArrayList<Variable>());
+			op5.getPrecList().add(p2);
+			op5.getPrecList().add(p7);
+			op5.getDeleteList().add(p7);
+			op5.getAddList().add(p8);
+			op5.varList.add(new DefaultVariable("x"));
+			
+			Operator op6 = new Operator(new ArrayList<Predicate>(), 
+										new ArrayList<Predicate>(), 
+										new ArrayList<Predicate>(), 
+										"UNLOAD", 
+										new ArrayList<Variable>());
+			op6.getPrecList().add(p2);
+			op6.getPrecList().add(p8);
+			op6.getDeleteList().add(p8);
+			op6.getAddList().add(p7);
+			op6.varList.add(new DefaultVariable("x"));
+			
+			ArrayList<Operator> lo = new ArrayList<Operator>();
+			lo.add(op1);
+			lo.add(op2);
+			lo.add(op3);
+			lo.add(op4);
+			lo.add(op5);
+			lo.add(op6);
+			
+			Locomotive locomotive = new Locomotive(lo, lp, states[0], states[1]);
+			
+			// TODO: locomotive.solve() in order to start the algorithm	
+			locomotive.solve();
 	}
 	
-	public static void readInput(String filename) throws IOException
+	public static State[] readInput(String filename) throws IOException
 	{
 		FileReader fileReader;
 		String str;
 		HashMap<String, Variable> varMap = new HashMap<String, Variable>();
+		State initialState = null, finalState = null;
 		try {
 			fileReader = new FileReader(new File(filename));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-			return;
+			return null;
 		}
 		BufferedReader br = new BufferedReader(fileReader);
 		
@@ -51,6 +181,7 @@ public class Main {
 		{
 			String[] parts = str.split("=");
 			String variableLabel = null;
+			ArrayList<Predicate> pl = new ArrayList<Predicate>();
 			
 			if (parts[0].equals("Wagons"))
 			{
@@ -61,8 +192,9 @@ public class Main {
 					varMap.put(variableLabel, new Variable(variableLabel));
 				}
 			}
-			else if (parts[0].equals("Initial_state"))
+			else /*if (parts[0].equals("Initial_state"))*/
 			{
+				String stateLabel = parts[0];
 				parts = parts[1].split(";");
 				for (String token : parts)
 				{
@@ -84,9 +216,19 @@ public class Main {
 						numVariables = aux.length;
 					}
 					
-					Predicate predicate = new Predicate(predicateLabel, varList, numVariables);
+					pl.add(new Predicate(predicateLabel, varList, numVariables));
+				}
+				
+				if (stateLabel.equals("Initial_state"))
+				{
+					initialState = new State(pl);
+				}
+				else if (stateLabel.equals("Goal_state"))
+				{
+					finalState = new State(pl);
 				}
 			}
+			/*
 			else if (parts[0].equals("Goal_state"))
 			{
 				parts = parts[1].split(";");
@@ -94,8 +236,15 @@ public class Main {
 				{
 					System.out.println(token);
 				}
-			}
+			}*/
 		}
 		br.close();
+		fileReader.close();
+		
+		State[] s = new State[2];
+		s[0] = initialState;
+		s[1] = finalState;
+		
+		return s;
 	}
 }

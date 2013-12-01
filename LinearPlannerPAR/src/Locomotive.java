@@ -9,6 +9,7 @@ public class Locomotive {
 	private State state; // current state
 	private Stack<Object> stack; // stack for solving the Linear Planner
 	private State finalState; // final state, our goal
+	private ArrayList<Operator> plan;
 	
 	/**
 	 * Constructor of our Locomotive, it prepares and initializes the data structures for starting
@@ -25,6 +26,7 @@ public class Locomotive {
 		state = iniState;
 		finalState = finState;
 		stack = new Stack<Object>();
+		plan = new ArrayList<Operator>();
 	}
 	
 	
@@ -34,6 +36,68 @@ public class Locomotive {
 	 */
 	public void solve(){
 		
+		stack.push(finalState);
+		Object top;		// Top element in the stack
+		while (!stack.isEmpty())
+		{
+			top = stack.peek();
+			if (top instanceof State)
+			{ 
+				State s = (State)top;
+				// If top of stack is goal that matches state, then pop stack. Matches means that ONLY predicates in s must be in current state
+				if (state.matchWith(s))
+					stack.pop();
+				else	// if top of stack is a conjunctive goal (i.e Sub state)
+				{
+					// Select an ordering for the subgoals(Predicates) and push them on stack
+					// TODO IMPORTANT: Here we should add some intelligence for deciding the order!
+					for (Predicate p : s.predList)
+					{
+						stack.push(p);
+					}
+				}
+			}
+			else if (top instanceof Predicate)
+			{
+				Predicate pred = (Predicate)top;
+				
+				// TODO Here we should check if the Predicate is true in the current state
+				if (state.isPredicateInState(pred))
+				{
+					stack.pop();
+				}
+				else
+				{
+					// Choose an operator o whose add-list matches goal sg
+					Operator op = chooseOperator(pred);
+					
+					// We make a copy of the object
+					ArrayList<Variable> vl = new ArrayList<Variable>(op.varList);
+					Operator cloned = new Operator(op.getAddList(), op.getDeleteList(), op.getPrecList(), op.name, vl);
+					
+					// Instantiate the operator with state variable
+					cloned.instantiate((pred).getVariables());
+					
+					// Replace goal sg with operator o
+					stack.pop();
+					stack.push(cloned);
+					stack.push(new State(cloned.precList));
+				}
+			}
+			else if (top instanceof Operator)
+			{
+				Operator op = (Operator)stack.pop();
+				applyOperator(op);
+				plan.add(op);
+				
+				String output = "";
+				for (Variable var : op.varList)
+				{
+					output = output + var.getName()+" ";
+				}
+				System.out.println("New action in the plan: "+op.name+" "+output);
+			}
+		}
 	}
 	
 	
@@ -46,10 +110,10 @@ public class Locomotive {
 	 * @param varList ArrayList<Variable> list of variables what must be instantiated on the given operator.
 	 * @return boolean saying whether the operator has been applied or not.
 	 */
-	private boolean applyOperator(Operator op, ArrayList<Variable> varList){
+	private boolean applyOperator(Operator op/*, ArrayList<Variable> varList*/){
 		
 		// Instantation of the variables in the current operator
-		op.instantiate(varList); 
+		//op.instantiate(varList); 
 		
 		// Checks if the preconditions are accomplished.
 		if(!state.checkPreconditions(op.getPrecList())){
@@ -62,8 +126,32 @@ public class Locomotive {
 			state.add(op.getAddList());
 			
 			return true;
-		}
-		
+		}	
 	}
 	
+	/**
+	 * Choose an operator in order to satisfy simple goal.
+	 * 
+	 * @param pred Predicate that must be satisfied
+	 * @return Operator an operator object
+	 */
+	private Operator chooseOperator (Predicate pred)
+	{
+		ArrayList<Operator> candidates = new ArrayList<Operator>();
+		
+		for (Operator op : opsList)
+		{
+			for (Predicate p : op.addList)
+			{
+				if (p.getName().equals(pred.getName()))
+				{
+					candidates.add(op);
+					break;
+				}				
+			}
+		}
+		// TODO ATENTION: For the moment, the method return the first operator of the list.
+		// It must be changed to be smarter.
+		return candidates.get(0);
+	}
 }

@@ -112,7 +112,5 @@ public class Operator {
 			
 			return true;
 		}
-		
 	}
-	
 }

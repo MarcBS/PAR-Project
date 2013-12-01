@@ -77,9 +77,39 @@ public class State {
 			
 			if(found){
 				predList.remove(j-1);
-			}
-			
+			}	
 		}
 	}
 	
+	/**
+	 * Check if a state match with other state. Matches means that all the predicates in the state passed as a parameter must be in the state which is been checking
+	 * 
+	 * @param other State 
+	 */
+	public boolean matchWith(State other)
+	{
+		for (Predicate p : other.predList)
+		{
+			if (!isPredicateInState(p))
+				return false;
+		}
+		return true;
+	}
+	
+	/**
+	 * Check if a state have a specific predicate
+	 * 
+	 * @param pred Predicate to perform the checking.
+	 */
+	public boolean isPredicateInState(Predicate pred)
+	{
+		for (Predicate p : predList)
+		{
+			if (p.equalsPredicate(pred))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 }

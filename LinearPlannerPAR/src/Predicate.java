@@ -25,6 +25,17 @@ public class Predicate {
 		return varNum;
 	}
 	
+	public Predicate clone(){
+		ArrayList<Variable> vl = new ArrayList<Variable>();
+		if(varNum > 0){
+			for(Variable v : varList){
+				vl.add(v.clone());
+			}
+		}
+		Predicate p = new Predicate(new String(name), vl, varNum);
+		return p;
+	}
+	
 	/**
 	 * Checks if it has the variable passed by parameter in its inner list.
 	 * 
@@ -110,7 +121,7 @@ public class Predicate {
 	 * passed by parameter with the current one in the class.
 	 * Return exceptions:
 	 * 		- The given list is shorter than the current: return -1 on the first position.
-	 * 		- The given list is longee than the current: return -2 on the first position.
+	 * 		- The given list is longer than the current: return -2 on the first position.
 	 * 		- One of the variables is a DefaultVariable: return 2 on the given position.
 	 * 		- Both lists have 0 variables: return 1 on the first position.
 	 * 
@@ -122,7 +133,7 @@ public class Predicate {
 		int[] ret = new int[Math.max(1, this.varNum)];
 		
 		// If both lists have 0 variables then we return a 1 in the first position
-		if(this.varNum == 0 && vl == null){
+		if(this.varNum == 0 && vl.size() == 0){
 			ret[0] = 1;
 			return ret;
 		}
@@ -150,7 +161,6 @@ public class Predicate {
 				}
 			}
 		}
-		
 		
 		return ret;
 	}

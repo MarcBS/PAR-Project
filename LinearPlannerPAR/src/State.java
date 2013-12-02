@@ -3,10 +3,36 @@ import java.util.ArrayList;
 
 public class State {
 
-	ArrayList<Predicate> predList;
+	private ArrayList<Predicate> predList;
+	private int occupied; // Number of occupied railways on this state.
 	
 	public State(ArrayList<Predicate> pl){
 		predList = pl;
+		occupied = 0;
+		
+		for(Predicate p : pl){
+			if(p.getName().equals("ON-STATION")){
+				occupied++;
+			}
+		}
+	}
+	
+	/**
+	 * Returns the number of occupied railways.
+	 * 
+	 * @return int.
+	 */
+	public int getOccupied(){
+		return occupied;
+	}
+	
+	/**
+	 * Returns the list of predicates accomplished on this state.
+	 * 
+	 * @return ArrayList<Predicate> with the list of predicates of this state.
+	 */
+	public ArrayList<Predicate> getPredList(){
+		return predList;
 	}
 	
 	/**
@@ -43,16 +69,31 @@ public class State {
 		for(int i = 0; i < pl.size(); i++){ // for each predicate
 			Predicate p = pl.get(i);
 			
-			boolean found = false;
-			int j = 0;
-			while(j < predList.size() && !found){
-				found = predList.get(j).equalsPredicate(p);
-				j++;
-			}
+			// If the predicate is USED-RAILWAYS
+			if(p.getName().equals("USED-RAILWAYS")){
+				// We increment or decrement the number of occupied spaces.
+				String varName = p.getVariables().get(0).getName();
+				switch (varName){
+					case "n+1":	this.occupied++;
+								break;
+					case "n-1":	this.occupied--;
+								break;
+				}
+				
+			} else {
 			
-			// We add it to the predicates list only if it is not already in.
-			if(!found){
-				predList.add(p);
+				boolean found = false;
+				int j = 0;
+				while(j < predList.size() && !found){
+					found = predList.get(j).equalsPredicate(p);
+					j++;
+				}
+				
+				// We add it to the predicates list only if it is not already in.
+				if(!found){
+					predList.add(p);
+				}
+				
 			}
 			
 		}
@@ -82,7 +123,8 @@ public class State {
 	}
 	
 	/**
-	 * Check if a state match with other state. Matches means that all the predicates in the state passed as a parameter must be in the state which is been checking
+	 * Check if a state matches with other state. Matches means that all the predicates in the 
+	 * state passed as a parameter, must be in the state which is being checked
 	 * 
 	 * @param other State 
 	 */
@@ -111,5 +153,22 @@ public class State {
 			}
 		}
 		return false;
+	}
+	
+	/**
+	 * Treats the particular case when we need to release the towed wagon.
+	 * 
+	 * @return Variable describing the wagon.
+	 */
+	public Variable getWagonOnLocomotive(){
+		Variable v;
+		boolean found = false;
+		int i = 0;
+		while(i < predList.size() && !found){
+			found = predList.get(i).getName().equals("TOWED");
+			i++;
+		}
+		v = new Variable(predList.get(i-1).getVariables().get(1).getName());
+		return v;
 	}
 }

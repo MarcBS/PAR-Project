@@ -19,4 +19,9 @@ public class Variable {
 		return name.equals(n);
 	}
 	
+	public Variable clone(){
+		Variable v = new Variable(new String(name));
+		return v;
+	}
+	
 }

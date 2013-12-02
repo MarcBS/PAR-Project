@@ -28,17 +28,24 @@ public class Main {
 			e.printStackTrace();
 			return;
 		}
-			
-			// TODO: initialize Locomotive with ops, predicates, iniState, finState
+			// Initialization of the problem
+		
+			int numRailways = 3; // number of maximum railways
 			
 			// Create predicates
 			Predicate p1 = new Predicate("USED-RAILWAYS", new ArrayList<Variable>(), 1);
 			p1.getVariables().add(new DefaultVariable("n"));
 			
+			Predicate p1_1 = new Predicate("USED-RAILWAYS", new ArrayList<Variable>(), 1);
+			p1_1.getVariables().add(new DefaultVariable("n-1"));
+			
+			Predicate p1_2 = new Predicate("USED-RAILWAYS", new ArrayList<Variable>(), 1);
+			p1_2.getVariables().add(new DefaultVariable("n+1"));
+			
 			Predicate p2 = new Predicate("ON-STATION", new ArrayList<Variable>(), 1);
 			p2.getVariables().add(new DefaultVariable("x"));
 			
-			Predicate p3 = new Predicate("FREE-LOCOMOTIVE", null, 0);
+			Predicate p3 = new Predicate("FREE-LOCOMOTIVE", new ArrayList<Variable>(), 0);
 			
 			Predicate p4 = new Predicate("FREE", new ArrayList<Variable>(), 1);
 			p4.getVariables().add(new DefaultVariable("x"));
@@ -72,16 +79,16 @@ public class Main {
 										new ArrayList<Predicate>(), 
 										"COUPLE", 
 										new ArrayList<Variable>());
-			op1.getPrecList().add(p1);
+			//op1.getPrecList().add(p1);
 			op1.getPrecList().add(p2);
 			op1.getPrecList().add(p3);
 			op1.getPrecList().add(p4);
 			op1.getDeleteList().add(p2);
 			op1.getDeleteList().add(p3);
-			op1.getDeleteList().add(p1);
+			//op1.getDeleteList().add(p1);
 			op1.getAddList().add(p5);
-			op1.getAddList().add(p1);
-			op1.varList.add(new DefaultVariable("x"));
+			op1.getAddList().add(p1_1);
+			op1.getVarList().add(new DefaultVariable("x"));
 			
 			Operator op2 = new Operator(new ArrayList<Predicate>(), 
 										new ArrayList<Predicate>(), 
@@ -90,13 +97,12 @@ public class Main {
 										new ArrayList<Variable>());
 			op2.getPrecList().add(p5);
 			op2.getPrecList().add(p1);
-			// ALERT! strange precondition n < max-railways
 			op2.getDeleteList().add(p5);
-			op2.getDeleteList().add(p1);
+			//op2.getDeleteList().add(p1);
 			op2.getAddList().add(p2);
-			op2.getAddList().add(p1);
+			op2.getAddList().add(p1_2);
 			op2.getAddList().add(p3);
-			op2.varList.add(new DefaultVariable("x"));
+			op2.getVarList().add(new DefaultVariable("x"));
 			
 			Operator op3 = new Operator(new ArrayList<Predicate>(), 
 										new ArrayList<Predicate>(), 
@@ -109,9 +115,13 @@ public class Main {
 			op3.getDeleteList().add(p6);
 			op3.getDeleteList().add(p3);
 			op3.getAddList().add(p5);
-			op3.getAddList().add(p4);
-			op3.varList.add(new DefaultVariable("x"));
-			op3.varList.add(new DefaultVariable("y"));
+			// FREE(Y)
+			Variable v = new Variable("y");
+			ArrayList<Variable> aV = new ArrayList<Variable>();
+			aV.add(v);
+			op3.getAddList().add(new Predicate("FREE", aV, 1));
+			op3.getVarList().add(new DefaultVariable("x"));
+			op3.getVarList().add(new DefaultVariable("y"));
 			
 			Operator op4 = new Operator(new ArrayList<Predicate>(), 
 										new ArrayList<Predicate>(), 
@@ -119,13 +129,21 @@ public class Main {
 										"ATTACH", 
 										new ArrayList<Variable>());
 			op4.getPrecList().add(p5);
-			op4.getPrecList().add(p4);
+			// FREE(Y)
+			v = new Variable("y");
+			aV = new ArrayList<Variable>();
+			aV.add(v);
+			op4.getPrecList().add(new Predicate("FREE", aV, 1));
 			op4.getDeleteList().add(p5);
-			op4.getDeleteList().add(p4);
+			// FREE(Y)
+			v = new Variable("y");
+			aV = new ArrayList<Variable>();
+			aV.add(v);
+			op4.getDeleteList().add(new Predicate("FREE", aV, 1));
 			op4.getAddList().add(p6);
 			op4.getAddList().add(p3);
-			op4.varList.add(new DefaultVariable("x"));
-			op4.varList.add(new DefaultVariable("y"));
+			op4.getVarList().add(new DefaultVariable("x"));
+			op4.getVarList().add(new DefaultVariable("y"));
 			
 			Operator op5 = new Operator(new ArrayList<Predicate>(), 
 										new ArrayList<Predicate>(), 
@@ -136,7 +154,7 @@ public class Main {
 			op5.getPrecList().add(p7);
 			op5.getDeleteList().add(p7);
 			op5.getAddList().add(p8);
-			op5.varList.add(new DefaultVariable("x"));
+			op5.getVarList().add(new DefaultVariable("x"));
 			
 			Operator op6 = new Operator(new ArrayList<Predicate>(), 
 										new ArrayList<Predicate>(), 
@@ -147,7 +165,7 @@ public class Main {
 			op6.getPrecList().add(p8);
 			op6.getDeleteList().add(p8);
 			op6.getAddList().add(p7);
-			op6.varList.add(new DefaultVariable("x"));
+			op6.getVarList().add(new DefaultVariable("x"));
 			
 			ArrayList<Operator> lo = new ArrayList<Operator>();
 			lo.add(op1);
@@ -157,12 +175,19 @@ public class Main {
 			lo.add(op5);
 			lo.add(op6);
 			
-			Locomotive locomotive = new Locomotive(lo, lp, states[0], states[1]);
+			Locomotive locomotive = new Locomotive(lo, lp, states[0], states[1], numRailways);
 			
-			// TODO: locomotive.solve() in order to start the algorithm	
 			locomotive.solve();
 	}
 	
+	/**
+	 * Reads the initial and final states from the .txt input file.
+	 * 
+	 * @param filename String with the name of the input file.
+	 * @return State[] an array with the initial state as the first and 
+	 * 		the final state as the second parameters.
+	 * @throws IOException
+	 */
 	public static State[] readInput(String filename) throws IOException
 	{
 		FileReader fileReader;
@@ -200,12 +225,11 @@ public class Main {
 				{
 					String[] aux = token.split("\\(");
 					String predicateLabel = aux[0];	//aux[0] is the name of the predicate, aux[1] could be "X)" or "X,Y)" or null in the case of a predicate without parameters
-					ArrayList<Variable> varList = null;
+					ArrayList<Variable> varList = new ArrayList<Variable>();
 					int numVariables = 0;
 					
 					if (aux.length > 1)
 					{
-						varList = new ArrayList<Variable>();
 						aux = aux[1].split(",");	
 						for (String tok : aux)	// tok could be "X" or "X)"
 						{

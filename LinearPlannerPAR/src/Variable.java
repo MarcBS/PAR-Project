@@ -20,7 +20,12 @@ public class Variable {
 	}
 	
 	public Variable clone(){
-		Variable v = new Variable(new String(name));
+		Variable v;
+		if(this instanceof DefaultVariable){
+			v = new DefaultVariable(new String(name));
+		} else {
+			v = new Variable(new String(name));
+		}
 		return v;
 	}
 	

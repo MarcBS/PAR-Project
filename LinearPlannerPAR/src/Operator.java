@@ -205,6 +205,20 @@ public class Operator {
 			substituteVar(v, newV);
 			varList.add(0, newV); // We set the new variable in this list.
 			return true;
+		} else if(name.equals("DETACH")){
+			if(varList.get(0) instanceof DefaultVariable){
+				boolean found = false;
+				int i = 0;
+				Predicate p;
+				while(i < s.getPredList().size() && !found){
+					p = s.getPredList().get(i);
+					if(p.getName().equals("IN-FRONT-OF") && p.getVariables().get(1).isName(varList.get(1).getName())){
+						this.instantiate(p);
+						found = true;
+					}
+					i++;
+				}
+			}
 		}
 		
 		return false;

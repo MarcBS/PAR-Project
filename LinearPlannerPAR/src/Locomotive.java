@@ -105,6 +105,11 @@ public class Locomotive {
 					// Instantiate the operator with state variable
 					cloned.instantiate(pred);
 					
+					// Particular cases of instantiation.
+					if(!cloned.isInstantiated()){
+						cloned.instantiate(state);
+					}
+					
 					// Replace goal sg with operator o
 					stack.pop();
 					stack.push(cloned);

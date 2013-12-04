@@ -74,6 +74,8 @@ public class Main {
 			lp.add(p8);
 			
 			// Create operators
+			
+			/////// COUPLE
 			Operator op1 = new Operator(new ArrayList<Predicate>(), 
 										new ArrayList<Predicate>(), 
 										new ArrayList<Predicate>(), 
@@ -85,11 +87,12 @@ public class Main {
 			op1.getPrecList().add(p4);
 			op1.getDeleteList().add(p2);
 			op1.getDeleteList().add(p3);
-			//op1.getDeleteList().add(p1);
+			//op1.getDeleteList().add(p4);
 			op1.getAddList().add(p5);
 			op1.getAddList().add(p1_1);
 			op1.getVarList().add(new DefaultVariable("x"));
 			
+			/////// PARK
 			Operator op2 = new Operator(new ArrayList<Predicate>(), 
 										new ArrayList<Predicate>(), 
 										new ArrayList<Predicate>(), 
@@ -102,8 +105,10 @@ public class Main {
 			op2.getAddList().add(p2);
 			op2.getAddList().add(p1_2);
 			op2.getAddList().add(p3);
+			//op2.getAddList().add(p4);
 			op2.getVarList().add(new DefaultVariable("x"));
 			
+			/////// DETACH
 			Operator op3 = new Operator(new ArrayList<Predicate>(), 
 										new ArrayList<Predicate>(), 
 										new ArrayList<Predicate>(), 
@@ -114,15 +119,17 @@ public class Main {
 			op3.getPrecList().add(p3);
 			op3.getDeleteList().add(p6);
 			op3.getDeleteList().add(p3);
+			//op3.getDeleteList().add(p4);
 			op3.getAddList().add(p5);
 			// FREE(Y)
-			Variable v = new Variable("y");
+			Variable v = new DefaultVariable("y");
 			ArrayList<Variable> aV = new ArrayList<Variable>();
 			aV.add(v);
 			op3.getAddList().add(new Predicate("FREE", aV, 1));
 			op3.getVarList().add(new DefaultVariable("x"));
 			op3.getVarList().add(new DefaultVariable("y"));
 			
+			/////// ATTACH
 			Operator op4 = new Operator(new ArrayList<Predicate>(), 
 										new ArrayList<Predicate>(), 
 										new ArrayList<Predicate>(), 
@@ -130,21 +137,23 @@ public class Main {
 										new ArrayList<Variable>());
 			op4.getPrecList().add(p5);
 			// FREE(Y)
-			v = new Variable("y");
+			v = new DefaultVariable("y");
 			aV = new ArrayList<Variable>();
 			aV.add(v);
 			op4.getPrecList().add(new Predicate("FREE", aV, 1));
 			op4.getDeleteList().add(p5);
 			// FREE(Y)
-			v = new Variable("y");
+			v = new DefaultVariable("y");
 			aV = new ArrayList<Variable>();
 			aV.add(v);
 			op4.getDeleteList().add(new Predicate("FREE", aV, 1));
 			op4.getAddList().add(p6);
 			op4.getAddList().add(p3);
+			//op4.getAddList().add(p4);
 			op4.getVarList().add(new DefaultVariable("x"));
 			op4.getVarList().add(new DefaultVariable("y"));
 			
+			/////// LOAD
 			Operator op5 = new Operator(new ArrayList<Predicate>(), 
 										new ArrayList<Predicate>(), 
 										new ArrayList<Predicate>(), 
@@ -156,6 +165,7 @@ public class Main {
 			op5.getAddList().add(p8);
 			op5.getVarList().add(new DefaultVariable("x"));
 			
+			/////// UNLOAD
 			Operator op6 = new Operator(new ArrayList<Predicate>(), 
 										new ArrayList<Predicate>(), 
 										new ArrayList<Predicate>(), 
@@ -177,7 +187,14 @@ public class Main {
 			
 			Locomotive locomotive = new Locomotive(lo, lp, states[0], states[1], numRailways);
 			
-			locomotive.solve();
+			// Plan solving
+			ArrayList<Operator> plan = locomotive.solve();
+			
+			// Final plan print
+			System.out.println("\nFinal plan found:");
+			for(Operator o : plan){
+				System.out.println("\t" + o.toString());
+			}
 	}
 	
 	/**

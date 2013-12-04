@@ -136,7 +136,7 @@ public class Operator {
 				
 				Variable v = varList.get(i);
 				varList.remove(i);
-				Variable newV = new Variable(vl.get(i).getName());
+				Variable newV = vl.get(i).clone();
 				
 				substituteVar(v, newV);
 				varList.add(i, newV); // We set the new variable in this list.
@@ -192,19 +192,27 @@ public class Operator {
 	 * Instantiates the operator wisely for the particular operation of 
 	 * releasing a wagon using the current state.
 	 * 
-	 * @param s current State.
+	 * @param s State current state.
+	 * @param plan ArrayList<Operator> plan currently applied.
+	 * @param fs State final state.
 	 */
-	public boolean instantiate(State s){
+	public boolean instantiate(State s, ArrayList<Operator> plan, State fs){
 		
+		/***************    Checking current state    *********************/
 		Variable newV = null;
 		Variable v = null;
+		
+		// PARK and ATTACH
 		if(name.equals("PARK") || name.equals("ATTACH")){
 			newV = s.getWagonOnLocomotive();
 			v = varList.get(0);
 			varList.remove(0);
 			substituteVar(v, newV);
 			varList.add(0, newV); // We set the new variable in this list.
-			return true;
+			if(this.isInstantiated()){
+				return true;
+			}
+		// DETACH
 		} else if(name.equals("DETACH")){
 			if(varList.get(0) instanceof DefaultVariable){
 				boolean found = false;
@@ -218,7 +226,98 @@ public class Operator {
 					}
 					i++;
 				}
+			} else if(varList.get(1) instanceof DefaultVariable){
+				boolean found = false;
+				int i = 0;
+				Predicate p;
+				while(i < s.getPredList().size() && !found){
+					p = s.getPredList().get(i);
+					if(p.getName().equals("IN-FRONT-OF") && p.getVariables().get(0).isName(varList.get(0).getName())){
+						this.instantiate(p);
+						found = true;
+					}
+					i++;
+				}
 			}
+		}
+		
+		/***************    Checking final state    *********************/
+		// COUPLE
+		if(name.equals("COUPLE")){
+			ArrayList<Variable> candidates = new ArrayList<Variable>();
+			for(Predicate p : s.getPredList()){
+				// Finds all the current variables ON-STATION
+				if(p.getName().equals("ON-STATION")){
+					boolean found = false;
+					int i = 0;
+					while(i < fs.getPredList().size() && !found){
+						Predicate pred = fs.getPredList().get(i);
+						// If on the final state there is the same variable ON-STATION
+						if(pred.getName().equals("ON-STATION") && p.getVariables().get(0).isName(pred.getVariables().get(0).getName())){
+							found = true;
+						}
+						i++; 
+					}
+					// Then we do not have to add it to the candidates list.
+					if(!found){
+						candidates.add(p.getVariables().get(0));
+					}
+				}
+			}
+			
+			// From all the found possible candidates, we chose one randomly.
+			int Min = 1;
+			int Max = candidates.size();
+			int chosen = Min + (int)(Math.random() * ((Max - Min) + 1));
+			newV = candidates.get(chosen-1).clone();
+			v = varList.get(0);
+			varList.remove(0);
+			substituteVar(v, newV);
+			varList.add(0, newV); // We set the new variable in this list.
+			
+		}
+		
+		
+		/***************    Checking plan    *********************/
+		// ATTACH
+		if(name.equals("ATTACH")){
+			Variable not_wanted = null;
+			Variable towed = null;
+			boolean found = false;
+			int i = 0;
+			// Finds the towed variable
+			while(i < s.getPredList().size() && !found){
+				found = s.getPredList().get(i).getName().equals("TOWED");
+				towed = s.getPredList().get(i).getVariables().get(0);
+				i++;
+			}
+			
+			found = false;
+			i = plan.size()-1;
+			// If we have recently Detached the towed variable, then we should not attach it again on the same place.
+			while(i >= 0 && !found){
+				if(plan.get(i).getName().equals("DETACH") && plan.get(i).getVarList().get(0).isName(towed.getName())){
+					not_wanted = plan.get(i).getVarList().get(1);
+					found = true;
+				}
+				i--;
+			}
+			// Find all the wagons that are FREE() except "not_wanted" and "towed"
+			ArrayList<Variable> free_vars = new ArrayList<Variable>();
+			for(Predicate p : s.getPredList()){
+				if(p.getName().equals("FREE") && !p.getVariables().get(0).isName(not_wanted.getName()) && !p.getVariables().get(0).isName(towed.getName())){
+					free_vars.add(p.getVariables().get(0));
+				}
+			}
+			// Instantiate randomly without using "not_wated"
+			int Min = 1;
+			int Max = free_vars.size();
+			int chosen = Min + (int)(Math.random() * ((Max - Min) + 1));
+			newV = free_vars.get(chosen-1).clone();
+			v = varList.get(1);
+			varList.remove(1);
+			substituteVar(v, newV);
+			varList.add(1, newV); // We set the new variable in this list.
 		}
 		
 		return false;
@@ -249,6 +348,15 @@ public class Operator {
 		String n = new String(name);
 		Operator oNew = new Operator(adl, del, prl, n, vl);
 		return oNew;
+	}
+	
+	
+	public String toString(){
+		String ret = "Operator: " + name + " ";
+		for(Variable v : varList){
+			ret += v.getName() + " ";
+		}
+		return ret;
 	}
 	
 }

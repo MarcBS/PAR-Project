@@ -165,4 +165,13 @@ public class Predicate {
 		return ret;
 	}
 	
+	
+	public String toString(){
+		String ret = "Predicate: " + name + " ";
+		for(Variable v : varList){
+			ret += v.getName() + " ";
+		}
+		return ret;
+	}
+	
 }

@@ -40,17 +40,23 @@ public class State {
 	 * current state.
 	 * 
 	 * @param pl ArrayList<Predicate> list of preconditions.
+	 * @param int number of maximum occupied railways. 
 	 * @return boolean saying if the preconditions are accomplished or not for 
 	 * 			the current state.
 	 */
-	public boolean checkPreconditions(ArrayList<Predicate> pl){
+	public boolean checkPreconditions(ArrayList<Predicate> pl, int maxN){
 		boolean accomplished = true;
 		int i = 0;
 		while(i < pl.size() && accomplished){ // for each predicate
 			boolean found = false;
 			int j = 0;
 			while(j < predList.size() && !found){
-				found = predList.get(j).equalsPredicate(pl.get(i));
+				Predicate ext_pred = pl.get(i);
+				if(ext_pred.getName().equals("USED-RAILWAYS")){
+					found = occupied < maxN;
+				} else {
+					found = predList.get(j).equalsPredicate(ext_pred);
+				}
 				j++;
 			}
 			accomplished = found;
@@ -128,12 +134,16 @@ public class State {
 	 * 
 	 * @param other State 
 	 */
-	public boolean matchWith(State other)
+	public boolean matchWith(State other, int maxN)
 	{
 		for (Predicate p : other.predList)
 		{
-			if (!isPredicateInState(p))
+			if(p.getName().equals("USED-RAILWAYS")){
+				if(occupied == maxN)
+					return false;
+			} else if (!isPredicateInState(p)){
 				return false;
+			}
 		}
 		return true;
 	}
@@ -168,7 +178,13 @@ public class State {
 			found = predList.get(i).getName().equals("TOWED");
 			i++;
 		}
-		v = new Variable(predList.get(i-1).getVariables().get(1).getName());
+		v = new Variable(predList.get(i-1).getVariables().get(0).getName());
 		return v;
 	}
+	
+	
+	public String toString(){
+		return "State";
+	}
+	
 }

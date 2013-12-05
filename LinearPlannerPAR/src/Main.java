@@ -16,6 +16,8 @@ import java.util.HashMap;
  *
  */
 public class Main {
+	
+	private static int numRailways; // number of maximum railways
 
 	public static void main(String[] args) {
 		
@@ -29,8 +31,6 @@ public class Main {
 			return;
 		}
 			// Initialization of the problem
-		
-			int numRailways = 3; // number of maximum railways
 			
 			// Create predicates
 			Predicate p1 = new Predicate("USED-RAILWAYS", new ArrayList<Variable>(), 1);
@@ -267,6 +267,11 @@ public class Main {
 				else if (stateLabel.equals("Goal_state"))
 				{
 					finalState = new State(pl);
+				}
+				else if (stateLabel.equals("Max_Railways"))
+				{
+					String[] string = str.split("=");
+					numRailways = Integer.parseInt(string[1]);
 				}
 			}
 			/*

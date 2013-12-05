@@ -82,11 +82,10 @@ public class Locomotive {
 						ArrayList<Variable> vlist = new ArrayList<Variable>();
 						vlist.add(v);
 						Predicate p = new Predicate("USED-RAILWAYS", vlist, 1);
-						Operator op = chooseOperator(p, state);
+						Operator op = chooseOperator(p, state, plan);
 						
 						// We make a copy of the object
-						ArrayList<Variable> vl = new ArrayList<Variable>(op.getVarList());
-						Operator cloned = new Operator(op.getAddList(), op.getDeleteList(), op.getPrecList(), op.getName(), vl);
+						Operator cloned = op.deepCopy();
 						
 						// Particular cases of instantiation.
 						if(!cloned.isInstantiated()){
@@ -96,6 +95,7 @@ public class Locomotive {
 						// Replace goal sg with operator o
 						stack.pop();
 						stack.push(cloned);
+						System.out.println("Desired operator: " + cloned.toString());
 						stack.push(new State(cloned.getPrecList()));
 						
 					}
@@ -103,7 +103,7 @@ public class Locomotive {
 				else
 				{
 					// Choose an operator o whose add-list matches goal sg
-					Operator op = chooseOperator(pred, state);
+					Operator op = chooseOperator(pred, state, plan);
 					
 					// We make a copy of the object
 					Operator cloned = op.deepCopy();
@@ -143,6 +143,36 @@ public class Locomotive {
 			
 		}
 		
+		
+		// Prints state achieved.
+		boolean[] contained = new boolean[finalState.getPredList().size()];
+		System.out.println("\nState achieved checking (on true final state):");
+		for(Predicate p : state.getPredList()){
+			boolean found = false;
+			int i = 0;
+			while(i < finalState.getPredList().size() && !found){
+				found = finalState.getPredList().get(i).toString().equals(p.toString());
+				i++;
+			}
+			contained[i-1] = found;
+			System.out.println("\t" + found + "\t" + p.toString());
+		}
+		
+		// Prints all the predicates on the final state that have been not achieved (if any).
+		System.out.println("\nPredicates not achieved and necessary:");
+		int count = 0;
+		int countWrong = 0;
+		for(boolean a : contained){
+			if(!a){
+				System.out.println("\t" + finalState.getPredList().get(count).toString());
+				countWrong++;
+			}
+			count++;
+		}
+		if(countWrong == 0){
+			System.out.println("\tNone");
+		}
+		
 		// Planning finished
 		return plan;
 		
@@ -180,7 +210,7 @@ public class Locomotive {
 	 * @param pred Predicate that must be satisfied
 	 * @return Operator an operator object
 	 */
-	private Operator chooseOperator (Predicate pred, State s)
+	private Operator chooseOperator (Predicate pred, State s, ArrayList<Operator> plan)
 	{
 		ArrayList<Operator> candidates = new ArrayList<Operator>();
 		
@@ -204,7 +234,7 @@ public class Locomotive {
 			}
 		}
 		
-		return chooseCandidate(candidates, pred, s);
+		return chooseCandidate(candidates, pred, s, plan);
 	}
 	
 	/**
@@ -214,7 +244,7 @@ public class Locomotive {
 	 * @param p Predicate to solve.
 	 * @return Operator chosen.
 	 */
-	private Operator chooseCandidate(ArrayList<Operator> candidates, Predicate p, State s){
+	private Operator chooseCandidate(ArrayList<Operator> candidates, Predicate p, State s, ArrayList<Operator> plan){
 		
 		// TODO ATENTION: For the moment, the method return the first operator of the list.
 		// It must be changed to be smarter.
@@ -235,6 +265,35 @@ public class Locomotive {
 				chosen = i;
 				
 			} else {
+				
+				Variable towed = null;
+				boolean found = false;
+				int i = 0;
+				// Finds the towed variable
+				while(i < s.getPredList().size() && !found){
+					found = s.getPredList().get(i).getName().equals("TOWED");
+					towed = s.getPredList().get(i).getVariables().get(0);
+					i++;
+				}
+				
+				found = false;
+				i = plan.size()-1;
+				int last = Math.max(0, plan.size()-10);
+				// If we have recently Coupled the towed variable, then we should not park it again.
+				while(i >= last && !found){
+					if(plan.get(i).getName().equals("COUPLE") && plan.get(i).getVarList().get(0).isName(towed.getName())){
+						found = true;
+					}
+					i--;
+				}
+				
+				if(found){
+					for(Operator c : candidates){
+						if(c.getName().equals("PARK")){
+							candidates.remove(c);
+						}
+					}
+				}
 				chosen = randomChoose(candidates)-1;
 			}
 		} else if (p.getName().equals("TOWED")){

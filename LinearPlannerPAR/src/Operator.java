@@ -209,34 +209,29 @@ public class Operator {
 			varList.remove(0);
 			substituteVar(v, newV);
 			varList.add(0, newV); // We set the new variable in this list.
-			if(this.isInstantiated()){
-				return true;
-			}
+			//if(this.isInstantiated()){
+				//return true;
+			//}
 		// DETACH
 		} else if(name.equals("DETACH")){
-			if(varList.get(0) instanceof DefaultVariable){
-				boolean found = false;
-				int i = 0;
-				Predicate p;
-				while(i < s.getPredList().size() && !found){
-					p = s.getPredList().get(i);
-					if(p.getName().equals("IN-FRONT-OF") && p.getVariables().get(1).isName(varList.get(1).getName())){
-						this.instantiate(p);
-						found = true;
+			boolean[] allOK = {false, false};
+			while(!(allOK[0] && allOK[1])){
+				for(int j = 0; j < 2; j++){
+					if(varList.get(j) instanceof DefaultVariable){
+						boolean found = false;
+						int i = 0;
+						Predicate p;
+						while(i < s.getPredList().size() && !found){
+							p = s.getPredList().get(i);
+							if(p.getName().equals("IN-FRONT-OF") && p.getVariables().get((j+1)%2).isName(varList.get((j+1)%2).getName())){
+								this.instantiate(p);
+								found = true;
+							}
+							i++;
+						}
+					} else {
+						allOK[j] = true;
 					}
-					i++;
-				}
-			} else if(varList.get(1) instanceof DefaultVariable){
-				boolean found = false;
-				int i = 0;
-				Predicate p;
-				while(i < s.getPredList().size() && !found){
-					p = s.getPredList().get(i);
-					if(p.getName().equals("IN-FRONT-OF") && p.getVariables().get(0).isName(varList.get(0).getName())){
-						this.instantiate(p);
-						found = true;
-					}
-					i++;
 				}
 			}
 		}
@@ -260,7 +255,7 @@ public class Operator {
 					}
 					// Then we do not have to add it to the candidates list.
 					if(!found){
-						candidates.add(p.getVariables().get(0));
+						candidates.add(p.getVariables().get(0).clone());
 					}
 				}
 			}
@@ -294,8 +289,9 @@ public class Operator {
 			
 			found = false;
 			i = plan.size()-1;
+			int last = Math.max(0, plan.size()-10);
 			// If we have recently Detached the towed variable, then we should not attach it again on the same place.
-			while(i >= 0 && !found){
+			while(i >= last && !found){
 				if(plan.get(i).getName().equals("DETACH") && plan.get(i).getVarList().get(0).isName(towed.getName())){
 					not_wanted = plan.get(i).getVarList().get(1);
 					found = true;
@@ -305,11 +301,19 @@ public class Operator {
 			// Find all the wagons that are FREE() except "not_wanted" and "towed"
 			ArrayList<Variable> free_vars = new ArrayList<Variable>();
 			for(Predicate p : s.getPredList()){
-				if(p.getName().equals("FREE") && !p.getVariables().get(0).isName(not_wanted.getName()) && !p.getVariables().get(0).isName(towed.getName())){
-					free_vars.add(p.getVariables().get(0));
+				if(p.getName().equals("FREE") && !p.getVariables().get(0).isName(towed.getName())){
+					// If there is any "not_wanted" variable, then we have to check that is is not chosen.
+					if(not_wanted != null){
+						if(!p.getVariables().get(0).isName(not_wanted.getName())){
+							free_vars.add(p.getVariables().get(0));
+						}
+					// If there is no "no_wanted" varaible, then we can choose this operator.
+					} else {
+						free_vars.add(p.getVariables().get(0));
+					}
 				}
 			}
-			// Instantiate randomly without using "not_wated"
+			// Instantiate randomly without using "not_wanted"
 			int Min = 1;
 			int Max = free_vars.size();
 			int chosen = Min + (int)(Math.random() * ((Max - Min) + 1));

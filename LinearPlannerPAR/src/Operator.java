@@ -260,15 +260,19 @@ public class Operator {
 				}
 			}
 			
-			// From all the found possible candidates, we chose one randomly.
+			// From all the found possible candidates, we choose one randomly.
 			int Min = 1;
 			int Max = candidates.size();
 			int chosen = Min + (int)(Math.random() * ((Max - Min) + 1));
-			newV = candidates.get(chosen-1).clone();
-			v = varList.get(0);
-			varList.remove(0);
-			substituteVar(v, newV);
-			varList.add(0, newV); // We set the new variable in this list.
+			try{
+				newV = candidates.get(chosen-1).clone();
+				v = varList.get(0);
+				varList.remove(0);
+				substituteVar(v, newV);
+				varList.add(0, newV); // We set the new variable in this list.
+			} catch (Exception e){
+				return false;
+			}
 			
 		}
 		
@@ -307,7 +311,7 @@ public class Operator {
 						if(!p.getVariables().get(0).isName(not_wanted.getName())){
 							free_vars.add(p.getVariables().get(0));
 						}
-					// If there is no "no_wanted" varaible, then we can choose this operator.
+					// If there is no "no_wanted" variable, then we can choose this operator.
 					} else {
 						free_vars.add(p.getVariables().get(0));
 					}
@@ -317,14 +321,18 @@ public class Operator {
 			int Min = 1;
 			int Max = free_vars.size();
 			int chosen = Min + (int)(Math.random() * ((Max - Min) + 1));
-			newV = free_vars.get(chosen-1).clone();
-			v = varList.get(1);
-			varList.remove(1);
-			substituteVar(v, newV);
-			varList.add(1, newV); // We set the new variable in this list.
+			try {
+				newV = free_vars.get(chosen-1).clone();
+				v = varList.get(1);
+				varList.remove(1);
+				substituteVar(v, newV);
+				varList.add(1, newV); // We set the new variable in this list.
+			} catch (Exception e){
+				return false;
+			}
 		}
 		
-		return false;
+		return true;
 	}
 	
 	/**

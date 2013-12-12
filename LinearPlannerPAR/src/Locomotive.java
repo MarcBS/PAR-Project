@@ -1,3 +1,5 @@
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -15,6 +17,8 @@ public class Locomotive {
 	private State finalState; // final state, our goal
 	private ArrayList<Operator> plan; // plan designed by the Linear Planner
 	private int maxN; // Number of available railways on our station.
+	
+	private BufferedWriter writer; // writer to the log file
 	
 	/**
 	 * Constructor of our Locomotive, it prepares and initializes the data structures for starting
@@ -41,14 +45,16 @@ public class Locomotive {
 	 * Main method for solving the planning problem, it applies the Linear Planner algorithm in order
 	 * to get to the final state from the given initial state.
 	 */
-	public ArrayList<Operator> solve(){
+	public ArrayList<Operator> solve(BufferedWriter writer){
+		
+		this.writer = writer;
 		
 		stack.push(finalState);
 		Object top;		// Top element in the stack
 		while (!stack.isEmpty())
 		{
 			top = stack.peek();
-			System.out.println(top.toString());
+			write(top.toString());
 			if (top instanceof State)
 			{ 
 				State s = (State)top;
@@ -59,6 +65,7 @@ public class Locomotive {
 				{
 					// Select an ordering for the subgoals(Predicates) and push them on stack
 					ArrayList<Predicate> orderedPred = orderPredicates(s.getPredList());
+					//ArrayList<Predicate> orderedPred = s.getPredList();
 					for (Predicate p : orderedPred)
 					{
 						stack.push(p);
@@ -99,31 +106,37 @@ public class Locomotive {
 						// Replace goal sg with operator o
 						stack.pop();
 						stack.push(cloned);
-						System.out.println("Desired operator: " + cloned.toString());
+						write("Desired operator: " + cloned.toString());
 						stack.push(new State(cloned.getPrecList()));
 						
 					}
 				}
 				else
 				{
-					// Choose an operator o whose add-list matches goal sg
-					Operator op = chooseOperator(pred, state, plan);
-					
-					// We make a copy of the object
-					Operator cloned = op.deepCopy();
-
-					// Instantiate the operator with state variable
-					cloned.instantiate(pred);
-					
-					// Particular cases of instantiation.
-					if(!cloned.isInstantiated()){
-						cloned.instantiate(state, plan, finalState);
+					boolean ok = false;
+					Operator cloned = null;
+					while(!ok) {
+						// Choose an operator o whose add-list matches goal sg
+						Operator op = chooseOperator(pred, state, plan);
+						
+						// We make a copy of the object
+						cloned = op.deepCopy();
+	
+						// Instantiate the operator with state variable
+						cloned.instantiate(pred);
+						
+						// Particular cases of instantiation.
+						if(!cloned.isInstantiated()){
+							ok = cloned.instantiate(state, plan, finalState);
+						} else {
+							ok = true;
+						}
 					}
 					
 					// Replace goal sg with operator o
 					stack.pop();
 					stack.push(cloned);
-					System.out.println("Desired operator: " + cloned.toString());
+					write("Desired operator: " + cloned.toString());
 					stack.push(new State(cloned.getPrecList()));
 				}
 			}
@@ -142,7 +155,7 @@ public class Locomotive {
 				{
 					output = output + var.getName()+" ";
 				}
-				System.out.println(">>>>>>>>>>>>>>  " + "New action in the plan: "+op.getName()+" "+output + "  <<<<<<<<<<<<<<");
+				write(">>>>>>>>>>>>>>  " + "New action in the plan: "+op.getName()+" "+output + "  <<<<<<<<<<<<<<");
 			}
 			
 		}
@@ -150,7 +163,7 @@ public class Locomotive {
 		
 		// Prints state achieved.
 		boolean[] contained = new boolean[finalState.getPredList().size()];
-		System.out.println("\nState achieved checking (on true final state):");
+		write("\nState achieved checking (on true final state):");
 		for(Predicate p : state.getPredList()){
 			boolean found = false;
 			int i = 0;
@@ -159,22 +172,22 @@ public class Locomotive {
 				i++;
 			}
 			contained[i-1] = found;
-			System.out.println("\t" + found + "\t" + p.toString());
+			write("\t" + found + "\t" + p.toString());
 		}
 		
 		// Prints all the predicates on the final state that have been not achieved (if any).
-		System.out.println("\nPredicates not achieved and necessary:");
+		write("\nPredicates not achieved and necessary:");
 		int count = 0;
 		int countWrong = 0;
 		for(boolean a : contained){
 			if(!a){
-				System.out.println("\t" + finalState.getPredList().get(count).toString());
+				write("\t" + finalState.getPredList().get(count).toString());
 				countWrong++;
 			}
 			count++;
 		}
 		if(countWrong == 0){
-			System.out.println("\tNone");
+			write("\tNone");
 		}
 		
 		// Planning finished
@@ -273,28 +286,36 @@ public class Locomotive {
 				// Finds the towed variable
 				while(i < s.getPredList().size() && !found){
 					found = s.getPredList().get(i).getName().equals("TOWED");
-					towed = s.getPredList().get(i).getVariables().get(0);
+					if(found){
+						towed = s.getPredList().get(i).getVariables().get(0);
+					}
 					i++;
 				}
 				
-				found = false;
-				i = plan.size()-1;
-				int last = Math.max(0, plan.size()-10);
-				// If we have recently Coupled the towed variable, then we should not park it again.
-				while(i >= last && !found){
-					if(plan.get(i).getName().equals("COUPLE") && plan.get(i).getVarList().get(0).isName(towed.getName())){
-						found = true;
-					}
-					i--;
-				}
-				
+				// Only continues if we have found the towed variable
 				if(found){
-					for(Operator c : candidates){
-						if(c.getName().equals("PARK")){
-							candidates.remove(c);
+					found = false;
+					i = plan.size()-1;
+					int last = Math.max(0, plan.size()-10);
+					// If we have recently Coupled the towed variable, then we should not park it again.
+					while(i >= last && !found){
+						if(plan.get(i).getName().equals("COUPLE") && plan.get(i).getVarList().get(0).isName(towed.getName())){
+							found = true;
+						}
+						i--;
+					}
+					
+					if(found){
+						if(1 + (int)(Math.random() * ((2 - 1) + 1)) == 1){
+							for(Operator c : candidates){
+								if(c.getName().equals("PARK")){
+									candidates.remove(c);
+								}
+							}
 						}
 					}
 				}
+				
 				chosen = randomChoose(candidates)-1;
 			}
 		} else if (p.getName().equals("TOWED")){
@@ -362,7 +383,7 @@ public class Locomotive {
 				
 				// order of priority (the lower the number the higher the priority
 				HashMap<String, Integer> map = new HashMap<String, Integer>();
-				map.put("FREE-LOCOMOTIVE", 1);
+				map.put("FREE-LOCOMOTIVE", 5);
 				map.put("LOADED", 3	);
 				map.put("EMPTY", 3);
 				map.put("TOWED", 3);
@@ -383,5 +404,15 @@ public class Locomotive {
 		return predList;
 	}
 	
+	
+	// Writes to the log file
+	private void write(String s){
+		try {
+			this.writer.write(s + "\n");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	
 }

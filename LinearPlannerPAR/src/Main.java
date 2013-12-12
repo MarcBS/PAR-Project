@@ -1,9 +1,15 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 
 /**
@@ -187,15 +193,37 @@ public class Main {
 			
 			Locomotive locomotive = new Locomotive(lo, lp, states[0], states[1], numRailways);
 			
-			// Plan solving
-			ArrayList<Operator> plan = locomotive.solve();
 			
-			// Final plan print
-			System.out.println("\nFinal plan found:");
-			for(Operator o : plan){
-				System.out.println("\t" + o.toString());
-			}
-			System.out.println("Number of operations applied: " + String.valueOf(plan.size()));
+			// Prepares the log file
+			BufferedWriter writer = null;
+			File logFile = null;
+	        try {
+	            logFile = new File("log.txt");
+
+	            writer = new BufferedWriter(new FileWriter(logFile));
+
+				// Plan solving
+				ArrayList<Operator> plan = locomotive.solve(writer);
+				
+				// Final plan print
+				writer.write("\nFinal plan found:" + "\n");
+				for(Operator o : plan){
+					writer.write("\t" + o.toString() + "\n");
+				}
+				writer.write("Number of operations applied: " + String.valueOf(plan.size()) + "\n");
+				
+				// This will output the full path where the file will be written to...
+	            System.out.println("\nLog file saved in: " + logFile.getCanonicalPath());
+	            
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        } finally {
+	            try {
+	                // Close the writer regardless of what happens...
+	                writer.close();
+	            } catch (Exception e) {
+	            }
+	        }
 	}
 	
 	/**

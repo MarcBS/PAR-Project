@@ -1,4 +1,8 @@
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Stack;
 
 
@@ -54,8 +58,8 @@ public class Locomotive {
 				else	// if top of stack is a conjunctive goal (i.e Sub state)
 				{
 					// Select an ordering for the subgoals(Predicates) and push them on stack
-					// TODO IMPORTANT: Here we should add some intelligence for deciding the order!
-					for (Predicate p : s.getPredList())
+					ArrayList<Predicate> orderedPred = orderPredicates(s.getPredList());
+					for (Predicate p : orderedPred)
 					{
 						stack.push(p);
 					}
@@ -246,9 +250,6 @@ public class Locomotive {
 	 */
 	private Operator chooseCandidate(ArrayList<Operator> candidates, Predicate p, State s, ArrayList<Operator> plan){
 		
-		// TODO ATENTION: For the moment, the method return the first operator of the list.
-		// It must be changed to be smarter.
-		
 		int chosen = 0;
 		if(p.getName().equals("FREE-LOCOMOTIVE")){
 			if(s.getOccupied() == this.maxN){ // If there is not any free station position
@@ -346,4 +347,41 @@ public class Locomotive {
 		int chosen = Min + (int)(Math.random() * ((Max - Min) + 1));
 		return chosen;
 	}
+	
+	/**
+	 * Establishes an order for the predicates inserted in the stack.
+	 * 
+	 * @return
+	 */
+	private ArrayList<Predicate> orderPredicates(ArrayList<Predicate> predList){
+		
+		Collections.sort(predList, new Comparator<Predicate>(){
+			
+			@Override
+			public int compare(Predicate p1, Predicate p2) {
+				
+				// order of priority (the lower the number the higher the priority
+				HashMap<String, Integer> map = new HashMap<String, Integer>();
+				map.put("FREE-LOCOMOTIVE", 1);
+				map.put("LOADED", 3	);
+				map.put("EMPTY", 3);
+				map.put("TOWED", 3);
+				map.put("USED-RAILWAYS", 8);
+				map.put("ON-STATION", 3);
+				map.put("IN-FRONT-OF", 5);
+				map.put("FREE", 6);
+				
+		        if(map.get(p1.getName()) < map.get(p2.getName())){
+		        	return 1;
+		        } else if(map.get(p1.getName()) == map.get(p2.getName())){
+		        	return 0;
+		        } else {
+		        	return -1;
+		        }
+		    }
+		});
+		return predList;
+	}
+	
+	
 }

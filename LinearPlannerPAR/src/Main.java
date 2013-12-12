@@ -195,6 +195,7 @@ public class Main {
 			for(Operator o : plan){
 				System.out.println("\t" + o.toString());
 			}
+			System.out.println("Number of operations applied: " + String.valueOf(plan.size()));
 	}
 	
 	/**

@@ -5,12 +5,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Scanner;
 
 /**
  * Master in Artificial Intelligence
@@ -27,10 +24,45 @@ public class Main {
 
 	public static void main(String[] args) {
 		
+		HashMap<Integer, String> map = new HashMap<Integer,String>();
+		map.put(1, "inputProblem1.txt");
+		map.put(2, "inputProblem2.txt");
+		map.put(3, "inputProblem-Our1.txt");
+		map.put(4, "inputProblem-Our2.txt");
+		map.put(5, "inputProblem-Our3.txt");
+		
+		System.out.println("TYPE THE NUMBER OF THE PROBLEM TO BE SOLVED:");
+		System.out.println("1. Problem 1");
+		System.out.println("2. Problem 2");
+		System.out.println("3. OUR Easy problem");
+		System.out.println("4. OUR Medium problem");
+		System.out.println("5. OUR Hard problem");
+		
+		Scanner reader = new Scanner(System.in);
+		int choice = 0;
+		boolean valid = false;
+		while (!valid)
+		{
+			try 
+			{
+				choice = Integer.parseInt(reader.next());
+				if (choice >= 1 && choice <= 5)
+					valid = true;
+				else
+					throw new NumberFormatException();
+			}
+			catch (NumberFormatException e)
+			{
+				System.out.println("Error in the number typed. It must be inside the interval [1, 5]");
+				System.out.println("TYPE AGAIN:");
+			}
+		}
+		reader.close();
+		
 		State[] states;
 		try {
-			
-			states = readInput("input.txt");
+			String input = map.get(choice);
+			states = readInput(input);
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -303,15 +335,6 @@ public class Main {
 					numRailways = Integer.parseInt(string[1]);
 				}
 			}
-			/*
-			else if (parts[0].equals("Goal_state"))
-			{
-				parts = parts[1].split(";");
-				for (String token : parts)
-				{
-					System.out.println(token);
-				}
-			}*/
 		}
 		br.close();
 		fileReader.close();

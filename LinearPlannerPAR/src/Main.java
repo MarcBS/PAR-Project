@@ -25,11 +25,11 @@ public class Main {
 	public static void main(String[] args) {
 		
 		HashMap<Integer, String> map = new HashMap<Integer,String>();
-		map.put(1, "inputProblem1.txt");
-		map.put(2, "inputProblem2.txt");
-		map.put(3, "inputProblem-Our1.txt");
-		map.put(4, "inputProblem-Our2.txt");
-		map.put(5, "inputProblem-Our3.txt");
+		map.put(1, "Problems Inputs/inputProblem1.txt");
+		map.put(2, "Problems Inputs/inputProblem2.txt");
+		map.put(3, "Problems Inputs/inputProblem-Our1.txt");
+		map.put(4, "Problems Inputs/inputProblem-Our2.txt");
+		map.put(5, "Problems Inputs/inputProblem-Our3.txt");
 		
 		System.out.println("TYPE THE NUMBER OF THE PROBLEM TO BE SOLVED:");
 		System.out.println("1. Problem 1");

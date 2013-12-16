@@ -240,9 +240,11 @@ public class Operator {
 		// COUPLE
 		if(name.equals("COUPLE")){
 			ArrayList<Variable> candidates = new ArrayList<Variable>();
+			ArrayList<Variable> candidatesAux = new ArrayList<Variable>(); // used if in case the candidates list remains empty
 			for(Predicate p : s.getPredList()){
 				// Finds all the current variables ON-STATION
 				if(p.getName().equals("ON-STATION")){
+					candidatesAux.add(p.getVariables().get(0).clone());
 					boolean found = false;
 					int i = 0;
 					while(i < fs.getPredList().size() && !found){
@@ -258,6 +260,11 @@ public class Operator {
 						candidates.add(p.getVariables().get(0).clone());
 					}
 				}
+			}
+			
+			// If candidates remains empty then we use candidatesAux
+			if(candidates.size() == 0){
+				candidates = candidatesAux;
 			}
 			
 			// From all the found possible candidates, we choose one randomly.

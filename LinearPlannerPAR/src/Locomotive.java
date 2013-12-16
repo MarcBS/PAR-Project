@@ -88,19 +88,25 @@ public class Locomotive {
 						stack.pop();
 					} else {
 						
-						// Choose an operator o whose add-list matches USED-RAILWAYS(n-1)
-						DefaultVariable v = new DefaultVariable("n-1");
-						ArrayList<Variable> vlist = new ArrayList<Variable>();
-						vlist.add(v);
-						Predicate p = new Predicate("USED-RAILWAYS", vlist, 1);
-						Operator op = chooseOperator(p, state, plan);
-						
-						// We make a copy of the object
-						Operator cloned = op.deepCopy();
-						
-						// Particular cases of instantiation.
-						if(!cloned.isInstantiated()){
-							cloned.instantiate(state, plan, finalState);
+						boolean ok = false;
+						Operator cloned = null;
+						while(!ok) {
+							// Choose an operator o whose add-list matches USED-RAILWAYS(n-1)
+							DefaultVariable v = new DefaultVariable("n-1");
+							ArrayList<Variable> vlist = new ArrayList<Variable>();
+							vlist.add(v);
+							Predicate p = new Predicate("USED-RAILWAYS", vlist, 1);
+							Operator op = chooseOperator(p, state, plan);
+							
+							// We make a copy of the object
+							cloned = op.deepCopy();
+							
+							// Particular cases of instantiation.
+							if(!cloned.isInstantiated()){
+								ok = cloned.instantiate(state, plan, finalState);
+							} else {
+								ok = true;
+							}
 						}
 						
 						// Replace goal sg with operator o
